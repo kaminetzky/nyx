@@ -3,6 +3,7 @@ from leds import Leds
 import random
 import time
 
+
 PIN_NUM = 18
 BRIGHTNESS = 0.1
 LED_GROUPS = OrderedDict([('ring0', 12),
@@ -23,15 +24,15 @@ if __name__ == '__main__':
 
     # Fill by group
     for _ in range(10):
-        for group in leds.led_values.keys():
-            leds.fill_group(group, random.choice(list(leds.COLORS.values())))
+        for led_group in leds.led_groups.values():
+            led_group.fill(random.choice(list(leds.COLORS.values())))
         leds.show_pixels()
-        time.sleep(0.4)
+        time.sleep(0.3)
 
     # Chase by group
-    for group in leds.led_values.keys():
+    for led_group in leds.led_groups.values():
         random_color = random.choice(list(leds.COLORS.values()))
         for color in [random_color, leds.COLORS['black']]:
-            for i in range(len(leds.led_values[group])):
-                leds.led_values[group][i] = color
+            for i in range(led_group.num_leds):
+                led_group.pixels[i].value = color
                 leds.show_pixels()

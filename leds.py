@@ -1,7 +1,33 @@
 import array, time
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from machine import Pin
 import rp2
+
+
+class Pixel:
+    Value = namedtuple('Value', ('red', 'green', 'blue'))
+
+    def __init__(self, value=(0, 0, 0)):
+        self.value = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = Pixel.Value(*value)
+
+
+
+class LedGroup:
+    def __init__(self, num_leds):
+        self.num_leds = num_leds
+        self.pixels = [Pixel() for _ in range(num_leds)]
+
+    def fill(self, value):
+        for pixel in self.pixels:
+            pixel.value = value
 
 
 class Leds:
@@ -15,27 +41,29 @@ class Leds:
               'yellow': (255, 150, 0),
              }
 
+
     def __init__(self, led_groups, brightness, pin_num):
         self.brightness = brightness
 
-        self.led_values = OrderedDict(
-            [(name, [[0, 0, 0] for _ in range(num_leds)])
-             for name, num_leds in led_groups.items()])
+        self.led_groups = OrderedDict(
+            (name, LedGroup(num_leds))
+            for name, num_leds in led_groups.items())
+
         self.state_machine = rp2.StateMachine(
             0, Leds.pio_program, freq=8_000_000, sideset_base=Pin(pin_num))
         self.state_machine.active(1)
 
     @property
     def num_leds(self):
-        return sum([len(led_group_vals) for led_group_vals
-                    in self.led_values.values()])
+        return sum([led_group.num_leds for led_group
+                    in self.led_groups.values()])
 
     @property
-    def led_values_flat(self):
-        values = []
-        for led_group_vals in self.led_values.values():
-            values += led_group_vals
-        return values
+    def pixels_flat(self):
+        pixels = []
+        for led_group in self.led_groups.values():
+            pixels += led_group.pixels
+        return pixels
 
     @staticmethod
     @rp2.asm_pio(sideset_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_LEFT,
@@ -54,22 +82,18 @@ class Leds:
         wrap()
 
     def show_pixels(self):
-        led_values_flat_dimmed = array.array(
+        pixel_values_flat_dimmed = array.array(
             'I', [0 for _ in range(self.num_leds)])
-        for i, rgb_value in enumerate(self.led_values_flat):
-            red_val, green_val, blue_val = rgb_value
+        for i, pixel in enumerate(self.pixels_flat):
+            red_val, green_val, blue_val = pixel.value
             red_val_dimmed = int(red_val * self.brightness)
             green_val_dimmed = int(green_val * self.brightness)
             blue_val_dimmed = int(blue_val * self.brightness)
-            led_values_flat_dimmed[i] = ((green_val_dimmed<<16)
+            pixel_values_flat_dimmed[i] = ((green_val_dimmed<<16)
                                    + (red_val_dimmed<<8)
                                    + blue_val_dimmed)
-        self.state_machine.put(led_values_flat_dimmed, 8)
-
-    def fill_group(self, group, color):
-        num_leds_group = len(self.led_values[group])
-        self.led_values[group] = [color for _ in range(num_leds_group)]
+        self.state_machine.put(pixel_values_flat_dimmed, 8)
 
     def fill_all(self, color):
-        for led_group_key in self.led_values.keys():
-            self.fill_group(led_group_key, color)
+        for led_group in self.led_groups.values():
+            led_group.fill(color)
