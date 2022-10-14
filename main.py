@@ -16,10 +16,7 @@ LED_GROUPS = OrderedDict([('ring0', 12),
 BUTTON_PIN_NUMS = ((12, 13), (14, 15), (16, 17), (19, 20))
 
 
-if __name__ == '__main__':
-    buttons = [Button(*pin_nums) for pin_nums in BUTTON_PIN_NUMS]
-    leds = Leds(LED_GROUPS, BRIGHTNESS, PIN_NUM)
-
+def demo(buttons, leds):
     # Button LED flash
     for _ in range(10):
         for button in buttons:
@@ -53,3 +50,10 @@ if __name__ == '__main__':
             for i in range(led_group.num_leds):
                 led_group.pixels[i].value = color
                 leds.show_pixels()
+
+
+if __name__ == '__main__':
+    buttons = [Button(*pin_nums) for pin_nums in BUTTON_PIN_NUMS]
+    leds = Leds(LED_GROUPS, BRIGHTNESS, PIN_NUM)
+
+    demo(buttons, leds)
