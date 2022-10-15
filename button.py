@@ -3,9 +3,12 @@ from machine import Pin
 
 
 class Button:
-  def __init__(self, btn_pin_num, led_pin_num):
+  def __init__(self, btn_pin_num, led_pin_num, handler=None):
     self.btn_pin = Pin(btn_pin_num, Pin.IN, Pin.PULL_UP)
     self.led_pin = Pin(led_pin_num, Pin.OUT, value=0)
+    
+    if handler:
+      self.set_interrupt_handler(handler)
 
   @property
   def pressed(self):
@@ -14,6 +17,9 @@ class Button:
   @property
   def led_value(self):
     return bool(self.led_pin.value())
+
+  def set_interrupt_handler(self, handler):
+    self.btn_pin.irq(handler)
 
   def led_set(self, state):
     self.led_pin.value(state)

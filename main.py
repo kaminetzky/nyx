@@ -52,8 +52,12 @@ def demo(buttons, leds):
                 leds.show_pixels()
 
 
+def btn_callback(pin):
+    print(pin)
+
+
 if __name__ == '__main__':
-    buttons = [Button(*pin_nums) for pin_nums in BUTTON_PIN_NUMS]
+    buttons = [Button(*pin_nums, btn_callback) for pin_nums in BUTTON_PIN_NUMS]
     leds = Leds(LED_GROUPS, BRIGHTNESS, PIN_NUM)
 
     demo(buttons, leds)
