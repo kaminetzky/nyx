@@ -5,9 +5,7 @@ from machine import Pin
 class Button:
   def __init__(self, btn_pin_num, led_pin_num):
     self.btn_pin = Pin(btn_pin_num, Pin.IN, Pin.PULL_UP)
-    self.led_pin = Pin(led_pin_num, Pin.OUT)
-
-    self.led_off()
+    self.led_pin = Pin(led_pin_num, Pin.OUT, value=0)
 
   @property
   def pressed(self):
