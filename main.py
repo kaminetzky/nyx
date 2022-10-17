@@ -52,12 +52,11 @@ def demo(buttons, leds):
                 leds.show_pixels()
 
 
-def btn_callback(pin):
-    print(pin)
-
-
 if __name__ == '__main__':
-    buttons = [Button(*pin_nums, btn_callback) for pin_nums in BUTTON_PIN_NUMS]
+    # TODO: Try using a timer for leds.show_pixels(). Will it fix the glitch?
+
+    buttons = [Button(*pin_nums, Button.led_on, Button.led_off)
+               for pin_nums in BUTTON_PIN_NUMS]
     leds = Leds(LED_GROUPS, BRIGHTNESS, PIN_NUM)
 
     demo(buttons, leds)
